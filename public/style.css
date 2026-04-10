@@ -687,15 +687,10 @@ input, textarea, select, button {
 
 /* ── FOOTER ───────────────────────────────────── */
 #footer {
-  position: fixed;
-  bottom: calc(var(--nav) + 6px);
-  left: 0;
-  right: 0;
   text-align: center;
   font-size: 11px;
   color: var(--muted);
-  pointer-events: none;
-  z-index: 100;
+  padding: 24px 16px calc(var(--nav) + 16px);
   letter-spacing: .1px;
 }
 

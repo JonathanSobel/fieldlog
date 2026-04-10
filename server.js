@@ -68,7 +68,7 @@ app.post('/api/requests', (req, res) => {
     unit:          unit?.trim() ?? '',
     category:      category ?? '',
     items:         items?.trim() ?? '',
-    quantity:      quantity?.trim() ?? '',
+    quantity:      String(quantity ?? '').trim(),
     date_received: date_received ?? new Date().toISOString().split('T')[0],
     status:        'New',
     notes:         notes?.trim() ?? '',
