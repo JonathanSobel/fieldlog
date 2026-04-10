@@ -690,7 +690,7 @@ input, textarea, select, button {
   text-align: center;
   font-size: 11px;
   color: var(--muted);
-  padding: 24px 16px calc(var(--nav) + 16px);
+  padding: 8px 16px 16px;
   letter-spacing: .1px;
 }
 

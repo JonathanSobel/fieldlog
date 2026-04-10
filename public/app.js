@@ -35,7 +35,13 @@ async function api(method, path, body) {
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (body !== undefined) opts.body = JSON.stringify(body);
   const res = await fetch(path, opts);
-  if (method === 'DELETE' && res.ok) return {};
+  if (method === 'DELETE') {
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Delete failed');
+    }
+    return {};
+  }
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
@@ -258,18 +264,30 @@ function renderRequests() {
       : filtered.map(renderReqCard).join('')
     }`;
 
-  // Attach search listener (can't use inline because of re-render)
+  // Attach search listener — only re-render the list, not the whole view
   const si = document.getElementById('searchInput');
   if (si) {
     si.addEventListener('input', debounce(e => {
       state.search = e.target.value;
-      renderRequests();
+      renderRequestList();
     }, 250));
-    // Don't steal focus if user is mid-type
-    if (document.activeElement !== si && state.search === '') {
-      // leave focus alone
-    }
   }
+}
+
+function renderRequestList() {
+  const filtered = getFiltered();
+  const container = document.getElementById('view-requests');
+  if (!container) return;
+  // Remove old list items (everything after the filter-row)
+  const filterRow = container.querySelector('.filter-row');
+  if (!filterRow) return;
+  // Remove all siblings after filterRow
+  while (filterRow.nextSibling) filterRow.nextSibling.remove();
+  // Append updated list
+  const html = filtered.length === 0
+    ? `<div class="empty"><div class="empty-icon">🔍</div><p>No matching requests.</p></div>`
+    : filtered.map(renderReqCard).join('');
+  filterRow.insertAdjacentHTML('afterend', html);
 }
 
 // ─── RENDER: PICKUPS ──────────────────────────────────────────────────────────
@@ -365,6 +383,7 @@ function navigate(view) {
 
 function goFiltered(status) {
   state.filter = status;
+  state.search = '';
   navigate('requests');
 }
 
@@ -481,7 +500,11 @@ function closeModal() {
 
 function openEdit(id) {
   const req = state.allRequests.find(r => r.id === id);
-  if (req) openModal(req);
+  if (req) {
+    openModal(req);
+  } else {
+    alert('Request not found — please refresh the page.');
+  }
 }
 
 async function submitForm(e) {

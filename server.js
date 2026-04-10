@@ -83,9 +83,12 @@ app.put('/api/requests/:id', (req, res) => {
   if (!existing) return res.status(404).json({ error: 'Not found' });
 
   const allowed = ['soldier_name', 'unit', 'category', 'items', 'quantity', 'date_received', 'status', 'notes'];
+  const trimmed = ['soldier_name', 'unit', 'items', 'notes', 'quantity'];
   const updates = {};
   for (const key of allowed) {
-    if (req.body[key] !== undefined) updates[key] = req.body[key];
+    if (req.body[key] !== undefined) {
+      updates[key] = trimmed.includes(key) ? String(req.body[key] ?? '').trim() : req.body[key];
+    }
   }
 
   const updated = requests.update(req.params.id, updates);
