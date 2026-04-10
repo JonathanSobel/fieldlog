@@ -687,20 +687,15 @@ input, textarea, select, button {
 
 /* ── FOOTER ───────────────────────────────────── */
 #footer {
-  position: fixed;
-  bottom: 0;
+  position: absolute;
+  bottom: 4px;
   left: 0;
   right: 0;
-  height: var(--nav);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 6px;
-  font-size: 11px;
+  text-align: center;
+  font-size: 10px;
   color: var(--muted);
   letter-spacing: .1px;
   pointer-events: none;
-  z-index: 199;
 }
 
 /* ── DESKTOP ──────────────────────────────────── */
