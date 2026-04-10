@@ -685,6 +685,20 @@ input, textarea, select, button {
 .cat-btn.selected span { color: var(--blue); }
 .cat-btn:active { transform: scale(.94); }
 
+/* ── FOOTER ───────────────────────────────────── */
+#footer {
+  position: fixed;
+  bottom: calc(var(--nav) + 6px);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 100;
+  letter-spacing: .1px;
+}
+
 /* ── DESKTOP ──────────────────────────────────── */
 @media (min-width: 640px) {
   .stats-grid { grid-template-columns: repeat(4, 1fr); }
