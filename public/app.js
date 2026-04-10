@@ -6,9 +6,10 @@
 
 const state = {
   view:        'dashboard',
-  allRequests: [],   // full unfiltered list
+  allRequests: [],
   stats:       {},
   inventory:   [],
+  visits:      0,
   filter:      'all',
   search:      '',
 };
@@ -43,14 +44,16 @@ async function api(method, path, body) {
 // ─── DATA LOADING ─────────────────────────────────────────────────────────────
 
 async function loadAll() {
-  const [requests, stats, inventory] = await Promise.all([
+  const [requests, stats, inventory, visitRes] = await Promise.all([
     api('GET', '/api/requests'),
     api('GET', '/api/stats'),
     api('GET', '/api/inventory'),
+    api('POST', '/api/visits'),   // count this page load as a visit
   ]);
   state.allRequests = requests;
   state.stats = stats;
   state.inventory = inventory;
+  state.visits = visitRes.total;
 }
 
 async function refreshRequests() {
@@ -211,6 +214,11 @@ function renderDashboard() {
         <div class="stat-num">${stats.completed || 0}</div>
         <div class="stat-lbl">Completed</div>
       </div>
+    </div>
+
+    <div class="visits-bar">
+      <span>👁️ Total visits</span>
+      <span class="visits-num">${state.visits.toLocaleString()}</span>
     </div>
 
     <div class="section-hdr">

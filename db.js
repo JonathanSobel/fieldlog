@@ -87,9 +87,30 @@ class Table {
   }
 }
 
+// ── SIMPLE COUNTER ────────────────────────────────────────────────────────────
+
+class Counter {
+  constructor(name) {
+    this.file = path.join(DATA_DIR, `${name}.json`);
+    this._store = this._load();
+  }
+  _load() {
+    try { return JSON.parse(fs.readFileSync(this.file, 'utf8')); }
+    catch { return { count: 0 }; }
+  }
+  _save() {
+    const tmp = this.file + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(this._store));
+    fs.renameSync(tmp, this.file);
+  }
+  increment() { this._store.count++; this._save(); return this._store.count; }
+  get()       { return this._store.count; }
+}
+
 // ── TABLE INSTANCES ───────────────────────────────────────────────────────────
 
 const requests  = new Table('requests');
 const inventory = new Table('inventory');
+const visits    = new Counter('visits');
 
-module.exports = { requests, inventory };
+module.exports = { requests, inventory, visits };

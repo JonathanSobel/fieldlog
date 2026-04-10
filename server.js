@@ -1,6 +1,6 @@
 const express = require('express');
 const path    = require('path');
-const { requests, inventory } = require('./db');
+const { requests, inventory, visits } = require('./db');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -168,6 +168,16 @@ app.get('/api/export', (_req, res) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="requests-${today}.csv"`);
   res.send([headers.join(','), ...lines].join('\r\n'));
+});
+
+// ─── VISITS ───────────────────────────────────────────────────────────────────
+
+app.post('/api/visits', (_req, res) => {
+  res.json({ total: visits.increment() });
+});
+
+app.get('/api/visits', (_req, res) => {
+  res.json({ total: visits.get() });
 });
 
 // ─── START ────────────────────────────────────────────────────────────────────
