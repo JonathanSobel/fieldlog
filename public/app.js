@@ -54,6 +54,8 @@ async function loadAll() {
   state.stats = stats;
   state.inventory = inventory;
   state.visits = visitRes.total;
+  const vc = document.getElementById('visitCount');
+  if (vc) vc.textContent = visitRes.total.toLocaleString();
 }
 
 async function refreshRequests() {
@@ -214,11 +216,6 @@ function renderDashboard() {
         <div class="stat-num">${stats.completed || 0}</div>
         <div class="stat-lbl">Completed</div>
       </div>
-    </div>
-
-    <div class="visits-bar">
-      <span>👁️ Total visits</span>
-      <span class="visits-num">${state.visits.toLocaleString()}</span>
     </div>
 
     <div class="section-hdr">
