@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1b4332">
+  <title>FieldLog – Supply Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- ── HEADER ── -->
+    <header id="header">
+      <div class="header-left">
+        <span class="app-icon">🪖</span>
+        <div>
+          <div class="app-title">FieldLog</div>
+          <div class="app-subtitle">Supply Tracker</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="exportBtn" class="hdr-btn" title="Export to CSV">⬇ CSV</button>
+      </div>
+    </header>
+
+    <!-- ── BOTTOM NAV ── -->
+    <nav id="nav">
+      <button class="nav-item active" data-view="dashboard">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button class="nav-item" data-view="requests">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Requests</span>
+      </button>
+      <button class="nav-item" data-view="pickups">
+        <span class="nav-icon">📦</span>
+        <span class="nav-label">Pickups</span>
+      </button>
+      <button class="nav-item" data-view="inventory">
+        <span class="nav-icon">🗃️</span>
+        <span class="nav-label">Inventory</span>
+      </button>
+    </nav>
+
+    <!-- ── VIEWS ── -->
+    <main id="main">
+      <div id="view-dashboard" class="view active"></div>
+      <div id="view-requests"  class="view"></div>
+      <div id="view-pickups"   class="view"></div>
+      <div id="view-inventory" class="view"></div>
+    </main>
+
+    <!-- ── FAB ── -->
+    <button id="fab" title="Add new request" aria-label="Add new request">+</button>
+
+  </div><!-- #app -->
+
+
+  <!-- ════════════════════════════════════════════
+       ADD / EDIT REQUEST MODAL
+  ═════════════════════════════════════════════ -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-sheet">
+
+      <div class="modal-header">
+        <h2 id="modalTitle">New Request</h2>
+        <button id="modalClose" class="icon-btn" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="requestForm" autocomplete="off">
+          <input type="hidden" id="requestId">
+
+          <div class="form-group">
+            <label for="soldierName">Soldier Name / ID</label>
+            <input type="text" id="soldierName" placeholder="e.g. Cpl. Cohen / #1042" required>
+          </div>
+
+          <div class="form-group">
+            <label for="unit">Unit / Team</label>
+            <input type="text" id="unit" placeholder="e.g. Alpha-2 · HQ · K9 Unit" required>
+          </div>
+
+          <div class="form-group">
+            <label>Category</label>
+            <div class="cat-grid" id="catGrid">
+              <button type="button" class="cat-btn" data-cat="Hygiene">🧴<span>Hygiene</span></button>
+              <button type="button" class="cat-btn" data-cat="Clothing">👕<span>Clothing</span></button>
+              <button type="button" class="cat-btn" data-cat="Sweets">🍫<span>Sweets</span></button>
+              <button type="button" class="cat-btn" data-cat="Cigarettes">🚬<span>Cigarettes</span></button>
+              <button type="button" class="cat-btn" data-cat="Other">📦<span>Other</span></button>
+            </div>
+            <input type="hidden" id="category">
+          </div>
+
+          <div class="form-group">
+            <label for="items">Items Requested</label>
+            <textarea id="items" rows="3" placeholder="Describe what is needed..." required></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label for="quantity">Quantity</label>
+              <input type="text" id="quantity" placeholder="e.g. 3, 2 pairs">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label for="dateReceived">Date Received</label>
+              <input type="date" id="dateReceived" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="notes">Notes (optional)</label>
+            <input type="text" id="notes" placeholder="Any additional info...">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full" id="formSubmitBtn">
+            Save Request
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div><!-- #modal -->
+
+  <script src="app.js"></script>
+</body>
+</html>
