@@ -485,7 +485,9 @@ function openModal(req = null) {
       if (cb) cb.classList.add('selected');
     });
   } else {
-    document.getElementById('dateReceived').value = new Date().toISOString().split('T')[0];
+    const t = new Date();
+    const localDate = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+    document.getElementById('dateReceived').value = localDate;
   }
 
   modal.classList.remove('hidden');
