@@ -441,7 +441,16 @@ input, textarea, select, button {
   margin-top: 2px;
   font-weight: 400;
 }
-.req-badges { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-end; flex-shrink: 0; }
+.req-badges {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 5px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.req-badges::-webkit-scrollbar { display: none; }
 
 .req-items {
   font-size: 15px;
