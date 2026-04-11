@@ -51,12 +51,13 @@ async function api(method, path, body) {
 // ─── DATA LOADING ─────────────────────────────────────────────────────────────
 
 async function loadAll() {
-  const [requests, stats, inventory, activityData, visitRes] = await Promise.all([
+  const [requests, stats, inventory, activityData, visitRes, versionRes] = await Promise.all([
     api('GET', '/api/requests'),
     api('GET', '/api/stats'),
     api('GET', '/api/inventory'),
     api('GET', '/api/activity'),
     api('POST', '/api/visits'),
+    api('GET', '/api/version'),
   ]);
   state.allRequests = requests;
   state.stats = stats;
@@ -65,6 +66,8 @@ async function loadAll() {
   state.visits = visitRes.total;
   const vc = document.getElementById('visitCount');
   if (vc) vc.textContent = visitRes.total.toLocaleString();
+  const av = document.getElementById('appVersion');
+  if (av) av.textContent = 'v' + versionRes.version;
 }
 
 async function refreshRequests() {

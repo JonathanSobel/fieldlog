@@ -1,5 +1,6 @@
 const express = require('express');
 const path    = require('path');
+const { version } = require('./package.json');
 const { requests, inventory, activity, visits } = require('./db');
 
 const app  = express();
@@ -203,6 +204,10 @@ app.get('/api/export', (_req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="requests-${today}.csv"`);
   res.send([headers.join(','), ...lines].join('\r\n'));
 });
+
+// ─── VERSION ──────────────────────────────────────────────────────────────────
+
+app.get('/api/version', (_req, res) => res.json({ version }));
 
 // ─── ACTIVITY ─────────────────────────────────────────────────────────────────
 
