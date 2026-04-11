@@ -73,6 +73,12 @@ class Table {
     return true;
   }
 
+  removeWhere(predicate) {
+    const before = this._store.rows.length;
+    this._store.rows = this._store.rows.filter(r => !predicate(r));
+    if (this._store.rows.length !== before) this._save();
+  }
+
   count(predicate = () => true) {
     return this._store.rows.filter(predicate).length;
   }
