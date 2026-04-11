@@ -190,6 +190,7 @@ function renderReqCard(req) {
       <div class="req-meta">
         <span>📅 ${formatDate(req.date_received)}</span>
         <span>${daysAgoLabel(req.date_received)}</span>
+        ${req.logged_by ? `<span>✍️ ${esc(req.logged_by)}</span>` : ''}
         ${statusBadge(req.status)}
       </div>
       <div class="req-actions">
@@ -548,6 +549,7 @@ function openModal(req = null) {
   if (req) {
     document.getElementById('soldierName').value  = req.soldier_name;
     document.getElementById('unit').value         = req.unit;
+    document.getElementById('loggedBy').value     = req.logged_by ?? '';
     document.getElementById('items').value        = req.items;
     document.getElementById('quantity').value     = req.quantity;
     document.getElementById('dateReceived').value = req.date_received;
@@ -590,6 +592,7 @@ async function submitForm(e) {
   const data = {
     soldier_name:  document.getElementById('soldierName').value.trim(),
     unit:          document.getElementById('unit').value.trim(),
+    logged_by:     document.getElementById('loggedBy').value.trim(),
     category,
     items:         document.getElementById('items').value.trim(),
     quantity:      document.getElementById('quantity').value.trim(),

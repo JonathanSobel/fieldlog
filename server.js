@@ -63,6 +63,7 @@ app.get('/api/requests/:id', (req, res) => {
 app.post('/api/requests', (req, res) => {
   const { soldier_name, unit, category, items, quantity, date_received, notes, urgent } = req.body;
 
+  const { logged_by } = req.body;
   const row = requests.insert({
     soldier_name:  soldier_name?.trim() ?? '',
     unit:          unit?.trim() ?? '',
@@ -73,6 +74,7 @@ app.post('/api/requests', (req, res) => {
     status:        'New',
     notes:         notes?.trim() ?? '',
     urgent:        urgent === true,
+    logged_by:     logged_by?.trim() ?? '',
   });
 
   activity.insert({
@@ -92,8 +94,8 @@ app.put('/api/requests/:id', (req, res) => {
   const existing = requests.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Not found' });
 
-  const allowed = ['soldier_name', 'unit', 'category', 'items', 'quantity', 'date_received', 'status', 'notes', 'urgent'];
-  const trimmed = ['soldier_name', 'unit', 'items', 'notes', 'quantity'];
+  const allowed = ['soldier_name', 'unit', 'category', 'items', 'quantity', 'date_received', 'status', 'notes', 'urgent', 'logged_by'];
+  const trimmed = ['soldier_name', 'unit', 'items', 'notes', 'quantity', 'logged_by'];
   const updates = {};
   for (const key of allowed) {
     if (req.body[key] !== undefined) {
@@ -184,9 +186,9 @@ app.delete('/api/inventory/:id', (req, res) => {
 
 app.get('/api/export', (_req, res) => {
   const rows = requests.findAll({ orderBy: (a, b) => new Date(b.date_received) - new Date(a.date_received) });
-  const headers = ['ID', 'Soldier Name', 'Unit', 'Category', 'Items', 'Quantity', 'Date Received', 'Status', 'Notes', 'Created At'];
+  const headers = ['ID', 'Soldier Name', 'Unit', 'Logged By', 'Category', 'Items', 'Quantity', 'Date Received', 'Status', 'Notes', 'Created At'];
   const lines = rows.map(r =>
-    [r.id, r.soldier_name, r.unit, r.category, r.items, r.quantity,
+    [r.id, r.soldier_name, r.unit, r.logged_by, r.category, r.items, r.quantity,
      r.date_received, r.status, r.notes, r.created_at].map(csvCell).join(',')
   );
 
