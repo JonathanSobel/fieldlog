@@ -681,14 +681,17 @@ function initTheme() {
 // ─── DISCLAIMER ───────────────────────────────────────────────────────────────
 
 function initDisclaimer() {
-  const modal  = document.getElementById('disclaimerModal');
-  const accept = document.getElementById('disclaimerAccept');
-  if (!localStorage.getItem('fieldlog-terms-accepted')) {
+  const modal     = document.getElementById('disclaimerModal');
+  const accept    = document.getElementById('disclaimerAccept');
+  const isLocal   = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const accepted  = localStorage.getItem('fieldlog-terms-accepted');
+
+  if (isLocal || !accepted) {
     modal.classList.remove('hidden');
     document.body.classList.add('no-scroll');
   }
   accept.addEventListener('click', () => {
-    localStorage.setItem('fieldlog-terms-accepted', '1');
+    if (!isLocal) localStorage.setItem('fieldlog-terms-accepted', '1');
     modal.classList.add('hidden');
     document.body.classList.remove('no-scroll');
   });

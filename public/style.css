@@ -214,7 +214,7 @@ input, textarea, select, button {
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-lg);
   min-width: 160px;
-  z-index: 300;
+  z-index: 250;
   overflow: hidden;
 }
 .kebab-menu.hidden { display: none; }
@@ -667,10 +667,12 @@ input, textarea, select, button {
   background: rgba(0,0,0,.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 24px;
+  padding: 24px 20px;
 }
 .disclaimer-overlay.hidden { display: none; }
 .disclaimer-box {
@@ -679,7 +681,8 @@ input, textarea, select, button {
   box-shadow: var(--shadow-lg);
   max-width: 480px;
   width: 100%;
-  padding: 32px 28px 28px;
+  padding: 28px 22px 24px;
+  margin: auto;
   animation: fadeUp .3s cubic-bezier(.32,1,.28,1);
 }
 .disclaimer-logo {
@@ -952,9 +955,7 @@ input, textarea, select, button {
   font-size: 13px;
   color: var(--text-2);
   line-height: 1.45;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
 }
 .act-desc b { color: var(--text); font-weight: 600; }
 .act-unit {
