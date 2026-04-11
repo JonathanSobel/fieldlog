@@ -659,6 +659,64 @@ input, textarea, select, button {
 }
 .qty-zero { color: var(--s-overdue); }
 
+/* ── DISCLAIMER ───────────────────────────────── */
+.disclaimer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.disclaimer-overlay.hidden { display: none; }
+.disclaimer-box {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  max-width: 480px;
+  width: 100%;
+  padding: 32px 28px 28px;
+  animation: fadeUp .3s cubic-bezier(.32,1,.28,1);
+}
+.disclaimer-logo {
+  font-size: 36px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.disclaimer-title {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  margin-bottom: 20px;
+  letter-spacing: -.3px;
+}
+.disclaimer-body {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-2);
+  margin-bottom: 24px;
+}
+.disclaimer-body p { margin-bottom: 12px; }
+.disclaimer-body ul {
+  padding-left: 18px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.disclaimer-body li { padding-left: 4px; }
+.disclaimer-footer-text {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 0 !important;
+}
+
 /* ── MODAL ────────────────────────────────────── */
 .modal {
   position: fixed;

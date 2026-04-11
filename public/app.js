@@ -678,9 +678,28 @@ function initTheme() {
   });
 }
 
+// ─── DISCLAIMER ───────────────────────────────────────────────────────────────
+
+function initDisclaimer() {
+  const modal  = document.getElementById('disclaimerModal');
+  const accept = document.getElementById('disclaimerAccept');
+  if (!localStorage.getItem('fieldlog-terms-accepted')) {
+    modal.classList.remove('hidden');
+    document.body.classList.add('no-scroll');
+  }
+  accept.addEventListener('click', () => {
+    localStorage.setItem('fieldlog-terms-accepted', '1');
+    modal.classList.add('hidden');
+    document.body.classList.remove('no-scroll');
+  });
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 
 async function init() {
+  // Disclaimer
+  initDisclaimer();
+
   // Theme
   initTheme();
 
