@@ -712,8 +712,20 @@ async function init() {
       document.getElementById('category').value = selected.join(',');
     }));
 
+  // Kebab menu
+  const kebabBtn  = document.getElementById('kebabBtn');
+  const kebabMenu = document.getElementById('kebabMenu');
+  kebabBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    kebabMenu.classList.toggle('hidden');
+  });
+  document.addEventListener('click', () => kebabMenu.classList.add('hidden'));
+
   // Export
-  document.getElementById('exportBtn').addEventListener('click', exportCSV);
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    kebabMenu.classList.add('hidden');
+    exportCSV();
+  });
 
   // Load data and render
   try {

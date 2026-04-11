@@ -38,7 +38,12 @@
       <div class="header-right">
         <div class="hdr-visits">👁️ <span id="visitCount">—</span></div>
         <button id="themeToggle" class="theme-toggle" title="Toggle dark/light mode" aria-label="Toggle theme">☀️</button>
-        <button id="exportBtn" class="hdr-btn" title="Export to CSV">⬇ CSV</button>
+        <div class="kebab-wrap">
+          <button id="kebabBtn" class="theme-toggle" title="More options" aria-label="More options">⋯</button>
+          <div id="kebabMenu" class="kebab-menu hidden">
+            <button class="kebab-item" id="exportBtn">⬇ Export CSV</button>
+          </div>
+        </div>
         <svg class="il-flag" viewBox="0 0 44 32" xmlns="http://www.w3.org/2000/svg" aria-label="Israeli Flag">
           <rect width="44" height="32" fill="white"/>
           <rect y="0" width="44" height="6" fill="#0038b8"/>

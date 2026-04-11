@@ -204,6 +204,37 @@ input, textarea, select, button {
 }
 .theme-toggle:active { transform: scale(.9); }
 
+.kebab-wrap { position: relative; }
+.kebab-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  min-width: 160px;
+  z-index: 300;
+  overflow: hidden;
+}
+.kebab-menu.hidden { display: none; }
+.kebab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s;
+}
+.kebab-item:hover { background: var(--bg); }
+
 /* ── BOTTOM NAV ───────────────────────────────── */
 #nav {
   position: fixed;
