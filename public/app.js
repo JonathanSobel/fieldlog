@@ -190,7 +190,7 @@ function renderReqCard(req) {
       <div class="req-meta">
         <span>📅 ${formatDate(req.date_received)}</span>
         <span>${daysAgoLabel(req.date_received)}</span>
-        ${req.logged_by ? `<span>✍️ ${esc(req.logged_by)}</span>` : ''}
+        ${req.logged_by ? `<span>🖥️ ${esc(req.logged_by)}</span>` : ''}
         ${statusBadge(req.status)}
       </div>
       <div class="req-actions">
