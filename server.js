@@ -129,12 +129,7 @@ app.put('/api/requests/:id', (req, res) => {
 app.delete('/api/requests/:id', (req, res) => {
   const id = Number(req.params.id);
   if (!requests.remove(id)) return res.status(404).json({ error: 'Not found' });
-
-  // Remove activity entries for this request after 2 minutes
-  setTimeout(() => {
-    activity.removeWhere(e => e.request_id === id);
-  }, 2 * 60 * 1000);
-
+  activity.removeWhere(e => e.request_id === id);
   res.json({ success: true });
 });
 
