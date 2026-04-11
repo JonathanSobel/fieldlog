@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#ffffff" id="themeColorMeta">
   <title>FieldLog – Supply Tracker</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -14,7 +14,22 @@
     <!-- ── HEADER ── -->
     <header id="header">
       <div class="header-left">
-        <span class="app-icon">🪖</span>
+        <svg class="app-logo" width="32" height="36" viewBox="0 0 32 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="fl-g" x1="0" y1="0" x2="32" y2="36" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#52AAFF"/>
+              <stop offset="1" stop-color="#0050CC"/>
+            </linearGradient>
+          </defs>
+          <path d="M16 0.5L1 6.5v11c0 9.8 6.5 18.2 15 20.5C24.5 35.7 31 27.3 31 17.5v-11L16 0.5z" fill="url(#fl-g)"/>
+          <path d="M16 3.5L4 8.5v9c0 8 5.3 14.8 12 17 6.7-2.2 12-9 12-17v-9L16 3.5z" fill="white" fill-opacity="0.08"/>
+          <circle cx="16" cy="18" r="6.5" stroke="white" stroke-width="1.6" fill="none" opacity="0.92"/>
+          <line x1="16" y1="13" x2="16" y2="15.5" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="16" y1="20.5" x2="16" y2="23" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="11" y1="18" x2="13.5" y2="18" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="18.5" y1="18" x2="21" y2="18" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="16" cy="18" r="2.2" fill="white"/>
+        </svg>
         <div>
           <div class="app-title">FieldLog</div>
           <div class="app-subtitle">Supply Tracker</div>
@@ -22,6 +37,7 @@
       </div>
       <div class="header-right">
         <div class="hdr-visits">👁️ <span id="visitCount">—</span></div>
+        <button id="themeToggle" class="theme-toggle" title="Toggle dark/light mode" aria-label="Toggle theme">☀️</button>
         <button id="exportBtn" class="hdr-btn" title="Export to CSV">⬇ CSV</button>
       </div>
     </header>
@@ -76,6 +92,12 @@
       <div class="modal-body">
         <form id="requestForm" autocomplete="off">
           <input type="hidden" id="requestId">
+
+          <button type="button" id="urgentToggle" class="urgent-toggle">
+            <span class="urgent-toggle-icon">⚡</span>
+            <span class="urgent-toggle-label">Mark as Urgent</span>
+            <span class="urgent-toggle-switch"><span class="urgent-toggle-knob"></span></span>
+          </button>
 
           <div class="form-group">
             <label for="soldierName">Soldier Name / ID</label>

@@ -9,6 +9,7 @@ const state = {
   allRequests: [],
   stats:       {},
   inventory:   [],
+  activity:    [],
   visits:      0,
   filter:      'all',
   search:      '',
@@ -50,27 +51,31 @@ async function api(method, path, body) {
 // ─── DATA LOADING ─────────────────────────────────────────────────────────────
 
 async function loadAll() {
-  const [requests, stats, inventory, visitRes] = await Promise.all([
+  const [requests, stats, inventory, activityData, visitRes] = await Promise.all([
     api('GET', '/api/requests'),
     api('GET', '/api/stats'),
     api('GET', '/api/inventory'),
-    api('POST', '/api/visits'),   // count this page load as a visit
+    api('GET', '/api/activity'),
+    api('POST', '/api/visits'),
   ]);
   state.allRequests = requests;
   state.stats = stats;
   state.inventory = inventory;
+  state.activity = activityData;
   state.visits = visitRes.total;
   const vc = document.getElementById('visitCount');
   if (vc) vc.textContent = visitRes.total.toLocaleString();
 }
 
 async function refreshRequests() {
-  const [requests, stats] = await Promise.all([
+  const [requests, stats, activityData] = await Promise.all([
     api('GET', '/api/requests'),
     api('GET', '/api/stats'),
+    api('GET', '/api/activity'),
   ]);
   state.allRequests = requests;
   state.stats = stats;
+  state.activity = activityData;
 }
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -105,7 +110,11 @@ function daysAgoLabel(dateStr) {
 
 function getFiltered() {
   return state.allRequests.filter(r => {
-    if (state.filter !== 'all' && r.status !== state.filter) return false;
+    if (state.filter === 'urgent') {
+      if (!r.urgent || !['New', 'In Progress'].includes(r.status)) return false;
+    } else if (state.filter !== 'all' && r.status !== state.filter) {
+      return false;
+    }
     if (state.search) {
       const q = state.search.toLowerCase();
       return (r.soldier_name || '').toLowerCase().includes(q) ||
@@ -155,9 +164,12 @@ function nextActionButtons(req) {
 }
 
 function renderReqCard(req) {
-  const overdue = isOverdue(req);
-  const meta    = STATUS_META[req.status] || {};
-  const cls     = (meta.cls || '') + (overdue ? ' overdue' : '');
+  const overdue      = isOverdue(req);
+  const activeUrgent = req.urgent && ['New', 'In Progress'].includes(req.status);
+  const meta         = STATUS_META[req.status] || {};
+  let cls = meta.cls || '';
+  if (overdue)      cls += ' overdue';
+  if (activeUrgent) cls += ' urgent-req';
 
   return `
     <div class="req-card ${cls}" data-id="${req.id}">
@@ -167,6 +179,7 @@ function renderReqCard(req) {
           <div class="unit-name">${esc(req.unit)}</div>
         </div>
         <div class="req-badges">
+          ${activeUrgent ? '<span class="badge badge-urgent">⚡ URGENT</span>' : ''}
           ${overdue ? '<span class="badge badge-overdue">⚠ Overdue</span>' : ''}
           ${catBadge(req.category)}
         </div>
@@ -187,11 +200,65 @@ function renderReqCard(req) {
     </div>`;
 }
 
+// ─── ACTIVITY FEED ────────────────────────────────────────────────────────────
+
+function timeAgo(isoString) {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1)    return 'just now';
+  if (m < 60)   return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m / 60)}h ago`;
+  return `${Math.floor(m / 1440)}d ago`;
+}
+
+function renderActivityEntry(entry) {
+  let icon, desc;
+  if (entry.action === 'created') {
+    icon = '🆕';
+    desc = `<b>${esc(entry.soldier_name)}</b> submitted a new request`;
+  } else {
+    const toMeta = STATUS_META[entry.to_status] || {};
+    icon = toMeta.badge === 'badge-Done'     ? '✅'
+         : toMeta.badge === 'badge-Pickup'   ? '📦'
+         : toMeta.badge === 'badge-Cancel'   ? '✕'
+         : toMeta.badge === 'badge-Progress' ? '▶' : '🔄';
+    desc = `<b>${esc(entry.soldier_name)}</b>: `
+         + `<span class="act-status-from">${esc(entry.from_status)}</span>`
+         + ` → ${esc(entry.to_status)}`;
+  }
+  return `
+    <div class="activity-entry">
+      <div class="act-icon">${icon}</div>
+      <div class="act-body">
+        <div class="act-desc">${desc} <span class="act-unit">${esc(entry.unit)}</span></div>
+        <div class="act-time">${timeAgo(entry.created_at)}</div>
+      </div>
+    </div>`;
+}
+
+function renderActivityFeed() {
+  if (!state.activity.length) return '';
+  return `
+    <div class="section-hdr" style="margin-top:28px">
+      <span class="section-title">Recent Activity</span>
+    </div>
+    <div class="activity-feed">
+      ${state.activity.slice(0, 10).map(renderActivityEntry).join('')}
+    </div>`;
+}
+
 // ─── RENDER: DASHBOARD ────────────────────────────────────────────────────────
 
 function renderDashboard() {
   const { stats } = state;
   const recent    = state.allRequests.slice(0, 6);
+
+  const urgentBar = stats.urgent > 0 ? `
+    <div class="overdue-banner" style="border-color:rgba(255,59,48,.2)">
+      <span>⚡</span>
+      <span>${stats.urgent} urgent request${stats.urgent > 1 ? 's' : ''} need${stats.urgent === 1 ? 's' : ''} immediate attention</span>
+      <button class="btn btn-cancel ml-auto" onclick="goFiltered('urgent')" style="font-size:12px;padding:5px 10px;">View</button>
+    </div>` : '';
 
   const overdueBar = stats.overdue > 0 ? `
     <div class="overdue-banner">
@@ -203,6 +270,7 @@ function renderDashboard() {
   document.getElementById('view-dashboard').innerHTML = `
     <div class="page-title">Dashboard</div>
 
+    ${urgentBar}
     ${overdueBar}
 
     <div class="stats-grid">
@@ -231,7 +299,8 @@ function renderDashboard() {
     ${recent.length === 0
       ? `<div class="empty"><div class="empty-icon">📋</div><p>No requests yet.<br>Tap <strong>+</strong> to add the first one.</p></div>`
       : recent.map(renderReqCard).join('')
-    }`;
+    }
+    ${renderActivityFeed()}`;
 }
 
 // ─── RENDER: REQUESTS ─────────────────────────────────────────────────────────
@@ -241,6 +310,7 @@ function renderRequests() {
 
   const filterDefs = [
     { key: 'all',                              label: 'All' },
+    { key: 'urgent',                           label: '⚡ Urgent' },
     { key: 'New',                              label: '🔵 New' },
     { key: 'In Progress',                      label: '▶ Progress' },
     { key: 'In Stock – Waiting for Pickup',    label: '📦 Pickup' },
@@ -466,6 +536,9 @@ function openModal(req = null) {
   form.reset();
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
 
+  const urgentBtn = document.getElementById('urgentToggle');
+  urgentBtn.classList.toggle('active', !!(req?.urgent));
+
   document.getElementById('modalTitle').textContent = req ? 'Edit Request' : 'New Request';
   const submitBtn = document.getElementById('formSubmitBtn');
   submitBtn.textContent = req ? 'Save Changes' : 'Save Request';
@@ -522,6 +595,7 @@ async function submitForm(e) {
     quantity:      document.getElementById('quantity').value.trim(),
     date_received: document.getElementById('dateReceived').value,
     notes:         document.getElementById('notes').value.trim(),
+    urgent:        document.getElementById('urgentToggle').classList.contains('active'),
   };
 
   const btn = document.getElementById('formSubmitBtn');
@@ -557,9 +631,36 @@ function debounce(fn, ms) {
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
 
+// ─── THEME ────────────────────────────────────────────────────────────────────
+
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  const btn  = document.getElementById('themeToggle');
+  const meta = document.getElementById('themeColorMeta');
+  if (btn)  btn.textContent  = dark ? '🌙' : '☀️';
+  if (meta) meta.content     = dark ? '#1c1c1e' : '#ffffff';
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('fieldlog-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const dark = saved ? saved === 'dark' : prefersDark;
+  applyTheme(dark);
+
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const next = !isDark;
+    localStorage.setItem('fieldlog-theme', next ? 'dark' : 'light');
+    applyTheme(next);
+  });
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 
 async function init() {
+  // Theme
+  initTheme();
+
   // Nav
   document.querySelectorAll('.nav-item').forEach(btn =>
     btn.addEventListener('click', () => navigate(btn.dataset.view)));
@@ -571,6 +672,11 @@ async function init() {
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('modalBackdrop').addEventListener('click', closeModal);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // Urgent toggle
+  document.getElementById('urgentToggle').addEventListener('click', function() {
+    this.classList.toggle('active');
+  });
 
   // Form
   document.getElementById('requestForm').addEventListener('submit', submitForm);

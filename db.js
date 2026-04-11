@@ -111,6 +111,7 @@ class Counter {
 
 const requests  = new Table('requests');
 const inventory = new Table('inventory');
+const activity  = new Table('activity');
 const visits    = new Counter('visits');
 
-module.exports = { requests, inventory, visits };
+module.exports = { requests, inventory, activity, visits };

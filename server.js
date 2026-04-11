@@ -1,6 +1,6 @@
 const express = require('express');
 const path    = require('path');
-const { requests, inventory, visits } = require('./db');
+const { requests, inventory, activity, visits } = require('./db');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -61,7 +61,7 @@ app.get('/api/requests/:id', (req, res) => {
 
 // POST /api/requests
 app.post('/api/requests', (req, res) => {
-  const { soldier_name, unit, category, items, quantity, date_received, notes } = req.body;
+  const { soldier_name, unit, category, items, quantity, date_received, notes, urgent } = req.body;
 
   const row = requests.insert({
     soldier_name:  soldier_name?.trim() ?? '',
@@ -72,6 +72,16 @@ app.post('/api/requests', (req, res) => {
     date_received: date_received ?? new Date().toISOString().split('T')[0],
     status:        'New',
     notes:         notes?.trim() ?? '',
+    urgent:        urgent === true,
+  });
+
+  activity.insert({
+    request_id:   row.id,
+    soldier_name: row.soldier_name,
+    unit:         row.unit,
+    action:       'created',
+    from_status:  null,
+    to_status:    'New',
   });
 
   res.status(201).json(row);
@@ -82,13 +92,24 @@ app.put('/api/requests/:id', (req, res) => {
   const existing = requests.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Not found' });
 
-  const allowed = ['soldier_name', 'unit', 'category', 'items', 'quantity', 'date_received', 'status', 'notes'];
+  const allowed = ['soldier_name', 'unit', 'category', 'items', 'quantity', 'date_received', 'status', 'notes', 'urgent'];
   const trimmed = ['soldier_name', 'unit', 'items', 'notes', 'quantity'];
   const updates = {};
   for (const key of allowed) {
     if (req.body[key] !== undefined) {
       updates[key] = trimmed.includes(key) ? String(req.body[key] ?? '').trim() : req.body[key];
     }
+  }
+
+  if (updates.status && updates.status !== existing.status) {
+    activity.insert({
+      request_id:   existing.id,
+      soldier_name: existing.soldier_name,
+      unit:         existing.unit,
+      action:       'status_changed',
+      from_status:  existing.status,
+      to_status:    updates.status,
+    });
   }
 
   const updated = requests.update(req.params.id, updates);
@@ -105,6 +126,7 @@ app.delete('/api/requests/:id', (req, res) => {
 
 app.get('/api/stats', (_req, res) => {
   const all = requests.findAll();
+  const active = r => ['New', 'In Progress'].includes(r.status);
   res.json({
     new:           all.filter(r => r.status === 'New').length,
     inProgress:    all.filter(r => r.status === 'In Progress').length,
@@ -112,6 +134,7 @@ app.get('/api/stats', (_req, res) => {
     completed:     all.filter(r => r.status === 'Completed (Picked Up)').length,
     cancelled:     all.filter(r => r.status === 'Cancelled').length,
     overdue:       all.filter(isOverdue).length,
+    urgent:        all.filter(r => r.urgent && active(r)).length,
     total:         all.length,
   });
 });
@@ -171,6 +194,15 @@ app.get('/api/export', (_req, res) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="requests-${today}.csv"`);
   res.send([headers.join(','), ...lines].join('\r\n'));
+});
+
+// ─── ACTIVITY ─────────────────────────────────────────────────────────────────
+
+app.get('/api/activity', (_req, res) => {
+  const rows = activity.findAll({
+    orderBy: (a, b) => new Date(b.created_at) - new Date(a.created_at),
+  });
+  res.json(rows.slice(0, 20));
 });
 
 // ─── VISITS ───────────────────────────────────────────────────────────────────
