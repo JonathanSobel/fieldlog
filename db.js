@@ -111,6 +111,7 @@ class Counter {
   }
   increment() { this._store.count++; this._save(); return this._store.count; }
   get()       { return this._store.count; }
+  reset()     { this._store.count = 0; this._save(); }
 }
 
 // ── TABLE INSTANCES ───────────────────────────────────────────────────────────

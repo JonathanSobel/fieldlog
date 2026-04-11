@@ -268,6 +268,11 @@ app.get('/api/visits', (_req, res) => {
   res.json({ total: visits.get() });
 });
 
+app.delete('/api/visits', (_req, res) => {
+  visits.reset();
+  res.json({ total: 0 });
+});
+
 // ─── START ────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
