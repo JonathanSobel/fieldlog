@@ -86,6 +86,7 @@ app.post('/api/requests', (req, res) => {
     request_id:   row.id,
     soldier_name: row.soldier_name,
     unit:         row.unit,
+    logged_by:    row.logged_by,
     action:       'created',
     from_status:  null,
     to_status:    'New',

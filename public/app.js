@@ -216,7 +216,8 @@ function renderActivityEntry(entry) {
   let icon, desc;
   if (entry.action === 'created') {
     icon = '🆕';
-    desc = `<b>${esc(entry.soldier_name)}</b> submitted a new request`;
+    const filer = entry.logged_by || entry.soldier_name;
+    desc = `<b>${esc(filer)}</b> submitted a new request`;
   } else {
     const toMeta = STATUS_META[entry.to_status] || {};
     icon = toMeta.badge === 'badge-Done'     ? '✅'
