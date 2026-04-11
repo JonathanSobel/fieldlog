@@ -736,8 +736,24 @@ async function submitForm(e) {
 
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
 
-function exportCSV() {
-  window.location.href = '/api/export';
+async function exportCSV() {
+  try {
+    const res = await fetch('/api/export', {
+      headers: { 'Authorization': `Bearer ${getToken()}` },
+    });
+    if (!res.ok) throw new Error('Export failed');
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `requests-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Export failed: ' + err.message);
+  }
 }
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
@@ -774,10 +790,9 @@ function initTheme() {
 // ─── DISCLAIMER ───────────────────────────────────────────────────────────────
 
 function initDisclaimer() {
-  const modal     = document.getElementById('disclaimerModal');
-  const accept    = document.getElementById('disclaimerAccept');
-  const isLocal   = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  const accepted  = localStorage.getItem('fieldlog-terms-accepted');
+  const modal    = document.getElementById('disclaimerModal');
+  const accept   = document.getElementById('disclaimerAccept');
+  const accepted = localStorage.getItem('fieldlog-terms-accepted');
 
   if (isLocal || !accepted) {
     modal.classList.remove('hidden');
