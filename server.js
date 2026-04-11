@@ -34,9 +34,10 @@ function requireAuth(req, res, next) {
   res.status(401).json({ error: 'Unauthorized' });
 }
 
-// Protect all /api/* routes except /api/auth
+// Protect all /api/* routes except /api/auth and GET /api/visits
 app.use('/api', (req, res, next) => {
   if (req.path === '/auth') return next();
+  if (req.path === '/visits' && req.method === 'GET') return next();
   requireAuth(req, res, next);
 });
 
