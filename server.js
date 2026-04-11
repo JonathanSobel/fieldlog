@@ -37,7 +37,7 @@ function requireAuth(req, res, next) {
 // Protect all /api/* routes except /api/auth and GET /api/visits
 app.use('/api', (req, res, next) => {
   if (req.path === '/auth') return next();
-  if (req.path === '/visits' && req.method === 'GET') return next();
+  if (req.path === '/visits') return next();
   requireAuth(req, res, next);
 });
 
