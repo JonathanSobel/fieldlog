@@ -67,6 +67,7 @@ app.post('/api/requests', (req, res) => {
   if (!unit?.trim())         return res.status(400).json({ error: 'unit required' });
   if (!items?.trim())        return res.status(400).json({ error: 'items required' });
   if (!date_received)        return res.status(400).json({ error: 'date_received required' });
+  if (!logged_by?.trim())    return res.status(400).json({ error: 'logged_by required' });
 
   const row = requests.insert({
     soldier_name:  soldier_name?.trim() ?? '',
