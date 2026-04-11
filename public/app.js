@@ -32,9 +32,25 @@ const STATUS_META = {
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
 function getToken() { return localStorage.getItem('fieldlog-token'); }
 function setToken(t) { localStorage.setItem('fieldlog-token', t); }
-function clearToken() { localStorage.removeItem('fieldlog-token'); }
+function clearToken() {
+  localStorage.removeItem('fieldlog-token');
+  localStorage.removeItem('fieldlog-last-active');
+}
+
+function touchActivity() {
+  if (!isLocal) localStorage.setItem('fieldlog-last-active', Date.now());
+}
+
+function isSessionExpired() {
+  if (isLocal) return false;
+  const last = Number(localStorage.getItem('fieldlog-last-active') || 0);
+  return last && (Date.now() - last) > SESSION_TIMEOUT;
+}
 
 function showLogin() {
   document.getElementById('loginScreen').classList.remove('hidden');
@@ -50,12 +66,17 @@ async function initLogin() {
   const error = document.getElementById('loginError');
   const btn   = document.getElementById('loginBtn');
 
-  // Already logged in — skip
-  if (getToken()) return true;
+  // Already logged in — check session expiry
+  if (getToken()) {
+    if (isSessionExpired()) {
+      clearToken();
+    } else {
+      touchActivity();
+      return true;
+    }
+  }
 
   showLogin();
-
-  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
   return new Promise(resolve => {
     form.addEventListener('submit', async e => {
@@ -79,6 +100,7 @@ async function initLogin() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Incorrect password');
         setToken(data.token);
+        touchActivity();
         hideLogin();
         resolve(true);
       } catch (err) {
@@ -108,6 +130,7 @@ async function api(method, path, body) {
     showLogin();
     throw new Error('Session expired — please log in again');
   }
+  touchActivity();
   if (method === 'DELETE') {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -837,3 +860,11 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// Check session expiry every minute
+setInterval(() => {
+  if (getToken() && isSessionExpired()) {
+    clearToken();
+    showLogin();
+  }
+}, 60_000);
