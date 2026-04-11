@@ -246,6 +246,7 @@ function renderActivityFeed() {
   return `
     <div class="section-hdr" style="margin-top:28px">
       <span class="section-title">Recent Activity</span>
+      <button class="btn btn-ghost" onclick="clearActivity()" style="font-size:12px;color:var(--s-overdue)">Clear all</button>
     </div>
     <div class="activity-feed">
       ${state.activity.slice(0, 10).map(renderActivityEntry).join('')}
@@ -481,6 +482,19 @@ async function deleteReq(id) {
   try {
     await api('DELETE', `/api/requests/${id}`);
     await refreshRequests();
+    renderView();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+// ─── ACTIONS: ACTIVITY ────────────────────────────────────────────────────────
+
+async function clearActivity() {
+  if (!confirm('Clear all activity entries?')) return;
+  try {
+    await api('DELETE', '/api/activity');
+    state.activity = [];
     renderView();
   } catch (err) {
     alert('Error: ' + err.message);

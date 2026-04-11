@@ -220,6 +220,11 @@ app.get('/api/activity', (_req, res) => {
   res.json(rows.slice(0, 20));
 });
 
+app.delete('/api/activity', (_req, res) => {
+  activity.removeWhere(() => true);
+  res.json({ success: true });
+});
+
 // ─── VISITS ───────────────────────────────────────────────────────────────────
 
 app.post('/api/visits', (_req, res) => {
