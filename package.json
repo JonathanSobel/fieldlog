@@ -1,6 +1,6 @@
 {
   "name": "military-logistics",
-  "version": "1.3.2",
+  "version": "1.3.5",
   "description": "Field supply request tracking system",
   "main": "server.js",
   "scripts": {

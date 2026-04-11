@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════
-   FIELDLOG – SUPPLY TRACKER  |  app.js
+   SUPPLYLOG – SUPPLY TRACKER  |  app.js
 ════════════════════════════════════════════════ */
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
@@ -53,6 +53,13 @@ function isSessionExpired() {
 }
 
 function showLogin() {
+  // Reset form state before showing
+  const btn   = document.getElementById('loginBtn');
+  const error = document.getElementById('loginError');
+  const form  = document.getElementById('loginForm');
+  if (form)  form.reset();
+  if (btn)   { btn.textContent = 'Enter'; btn.disabled = false; }
+  if (error) error.classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
   document.body.classList.add('no-scroll');
 }
@@ -102,6 +109,11 @@ async function initLogin() {
         setToken(data.token);
         touchActivity();
         hideLogin();
+        if (window._needsDataRefresh) {
+          window._needsDataRefresh = false;
+          await refreshRequests();
+          renderView();
+        }
         resolve(true);
       } catch (err) {
         error.textContent = err.message;
@@ -880,6 +892,7 @@ document.addEventListener('DOMContentLoaded', init);
 setInterval(() => {
   if (getToken() && isSessionExpired()) {
     clearToken();
+    window._needsDataRefresh = true;
     showLogin();
   }
 }, 60_000);
