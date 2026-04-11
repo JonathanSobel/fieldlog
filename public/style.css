@@ -89,6 +89,12 @@
   --shadow-lg: 0 16px 48px rgba(0,0,0,.6), 0 0 1px rgba(0,0,0,.4);
 }
 
+/* Dark mode overrides for hardcoded badge/button text colors */
+[data-theme="dark"] .badge-Progress { color: #ffa030; }
+[data-theme="dark"] .badge-Done     { color: #30d158; }
+[data-theme="dark"] .btn-start      { color: #ffa030; }
+[data-theme="dark"] .btn-done       { color: #30d158; }
+
 /* ── RESET ────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;

@@ -115,6 +115,7 @@ app.put('/api/requests/:id', (req, res) => {
       request_id:   existing.id,
       soldier_name: existing.soldier_name,
       unit:         existing.unit,
+      logged_by:    existing.logged_by,
       action:       'status_changed',
       from_status:  existing.status,
       to_status:    updates.status,
@@ -195,10 +196,10 @@ app.delete('/api/inventory/:id', (req, res) => {
 
 app.get('/api/export', (_req, res) => {
   const rows = requests.findAll({ orderBy: (a, b) => new Date(b.date_received) - new Date(a.date_received) });
-  const headers = ['ID', 'Soldier Name', 'Unit', 'Logged By', 'Category', 'Items', 'Quantity', 'Date Received', 'Status', 'Notes', 'Created At'];
+  const headers = ['ID', 'Soldier Name', 'Unit', 'Logged By', 'Category', 'Items', 'Quantity', 'Date Received', 'Status', 'Urgent', 'Notes', 'Created At'];
   const lines = rows.map(r =>
     [r.id, r.soldier_name, r.unit, r.logged_by, r.category, r.items, r.quantity,
-     r.date_received, r.status, r.notes, r.created_at].map(csvCell).join(',')
+     r.date_received, r.status, r.urgent ? 'Yes' : 'No', r.notes, r.created_at].map(csvCell).join(',')
   );
 
   const today = new Date().toISOString().split('T')[0];
