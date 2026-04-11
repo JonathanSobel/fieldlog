@@ -61,9 +61,13 @@ app.get('/api/requests/:id', (req, res) => {
 
 // POST /api/requests
 app.post('/api/requests', (req, res) => {
-  const { soldier_name, unit, category, items, quantity, date_received, notes, urgent } = req.body;
+  const { soldier_name, unit, category, items, quantity, date_received, notes, urgent, logged_by } = req.body;
 
-  const { logged_by } = req.body;
+  if (!soldier_name?.trim()) return res.status(400).json({ error: 'soldier_name required' });
+  if (!unit?.trim())         return res.status(400).json({ error: 'unit required' });
+  if (!items?.trim())        return res.status(400).json({ error: 'items required' });
+  if (!date_received)        return res.status(400).json({ error: 'date_received required' });
+
   const row = requests.insert({
     soldier_name:  soldier_name?.trim() ?? '',
     unit:          unit?.trim() ?? '',

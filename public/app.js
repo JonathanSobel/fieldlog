@@ -335,9 +335,11 @@ function renderRequests() {
       : filtered.map(renderReqCard).join('')
     }`;
 
-  // Attach search listener — only re-render the list, not the whole view
-  const si = document.getElementById('searchInput');
-  if (si) {
+  // Replace node to drop any accumulated listeners from previous renders
+  const oldSi = document.getElementById('searchInput');
+  if (oldSi) {
+    const si = oldSi.cloneNode(true);
+    oldSi.replaceWith(si);
     si.addEventListener('input', debounce(e => {
       state.search = e.target.value;
       renderRequestList();
@@ -556,7 +558,7 @@ function openModal(req = null) {
     document.getElementById('notes').value        = req.notes;
     document.getElementById('category').value     = req.category;
     (req.category || '').split(',').map(c => c.trim()).forEach(cat => {
-      const cb = document.querySelector(`.cat-btn[data-cat="${cat}"]`);
+      const cb = [...document.querySelectorAll('.cat-btn')].find(b => b.dataset.cat === cat);
       if (cb) cb.classList.add('selected');
     });
   } else {
