@@ -154,6 +154,25 @@
   </div><!-- #modal -->
 
   <!-- ════════════════════════════════════════════
+       LOGIN SCREEN
+  ═════════════════════════════════════════════ -->
+  <div id="loginScreen" class="login-overlay hidden" role="dialog" aria-modal="true">
+    <div class="login-box">
+      <img src="logo.jpg" class="login-logo" alt="FieldLog">
+      <div class="login-title">FieldLog</div>
+      <div class="login-subtitle">Supply Tracker</div>
+      <form id="loginForm" autocomplete="off">
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter password" required autocomplete="current-password">
+        </div>
+        <div id="loginError" class="login-error hidden">Incorrect password. Try again.</div>
+        <button type="submit" class="btn btn-primary btn-full" id="loginBtn">Enter</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
        DISCLAIMER MODAL
   ═════════════════════════════════════════════ -->
   <div id="disclaimerModal" class="disclaimer-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle">

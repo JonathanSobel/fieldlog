@@ -30,12 +30,84 @@ const STATUS_META = {
   'Cancelled':                      { cls: 's-Cancelled', badge: 'badge-Cancel',   label: 'Cancelled' },
 };
 
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+
+function getToken() { return localStorage.getItem('fieldlog-token'); }
+function setToken(t) { localStorage.setItem('fieldlog-token', t); }
+function clearToken() { localStorage.removeItem('fieldlog-token'); }
+
+function showLogin() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.body.classList.add('no-scroll');
+}
+function hideLogin() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.body.classList.remove('no-scroll');
+}
+
+async function initLogin() {
+  const form  = document.getElementById('loginForm');
+  const error = document.getElementById('loginError');
+  const btn   = document.getElementById('loginBtn');
+
+  // Already logged in — skip
+  if (getToken()) return true;
+
+  showLogin();
+
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+  return new Promise(resolve => {
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      // On localhost: skip real auth, any input works
+      if (isLocal) {
+        setToken('dev-token');
+        hideLogin();
+        return resolve(true);
+      }
+      const password = document.getElementById('loginPassword').value;
+      btn.textContent = 'Checking…';
+      btn.disabled = true;
+      error.classList.add('hidden');
+      try {
+        const res = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Incorrect password');
+        setToken(data.token);
+        hideLogin();
+        resolve(true);
+      } catch (err) {
+        error.textContent = err.message;
+        error.classList.remove('hidden');
+        btn.textContent = 'Enter';
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
 // ─── API ─────────────────────────────────────────────────────────────────────
 
 async function api(method, path, body) {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`,
+    },
+  };
   if (body !== undefined) opts.body = JSON.stringify(body);
   const res = await fetch(path, opts);
+  if (res.status === 401) {
+    clearToken();
+    showLogin();
+    throw new Error('Session expired — please log in again');
+  }
   if (method === 'DELETE') {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -698,11 +770,14 @@ function initDisclaimer() {
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 
 async function init() {
-  // Disclaimer
-  initDisclaimer();
-
-  // Theme
+  // Theme first (so login screen is styled correctly)
   initTheme();
+
+  // Login — waits until authenticated before continuing
+  await initLogin();
+
+  // Disclaimer (after login)
+  initDisclaimer();
 
   // Nav
   document.querySelectorAll('.nav-item').forEach(btn =>

@@ -1,5 +1,6 @@
 const express = require('express');
 const path    = require('path');
+const crypto  = require('crypto');
 const { version } = require('./package.json');
 const { requests, inventory, activity, visits } = require('./db');
 
@@ -8,6 +9,36 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+
+const APP_PASSWORD = process.env.APP_PASSWORD || 'fieldlog';
+
+function makeToken(pw) {
+  return crypto.createHmac('sha256', 'fieldlog-salt').update(pw).digest('hex');
+}
+const VALID_TOKEN = makeToken(APP_PASSWORD);
+
+app.post('/api/auth', (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ error: 'Password required' });
+  if (makeToken(password) !== VALID_TOKEN) return res.status(401).json({ error: 'Incorrect password' });
+  res.json({ token: VALID_TOKEN });
+});
+
+function requireAuth(req, res, next) {
+  const host = req.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') return next();
+  const auth = req.headers['authorization'] || '';
+  if (auth === `Bearer ${VALID_TOKEN}`) return next();
+  res.status(401).json({ error: 'Unauthorized' });
+}
+
+// Protect all /api/* routes except /api/auth
+app.use('/api', (req, res, next) => {
+  if (req.path === '/auth') return next();
+  requireAuth(req, res, next);
+});
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 

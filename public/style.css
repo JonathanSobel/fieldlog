@@ -655,6 +655,60 @@ input, textarea, select, button {
 }
 .qty-zero { color: var(--s-overdue); }
 
+/* ── LOGIN ────────────────────────────────────── */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.login-overlay.hidden { display: none; }
+.login-box {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.login-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 20%;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  border: 3px solid rgba(255,255,255,.7);
+  margin-bottom: 16px;
+}
+.login-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -.6px;
+  margin-bottom: 4px;
+}
+.login-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+.login-box .form-group { width: 100%; }
+.login-error {
+  font-size: 13px;
+  color: var(--s-overdue);
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.login-error.hidden { display: none; }
+
 /* ── DISCLAIMER ───────────────────────────────── */
 .disclaimer-overlay {
   position: fixed;
