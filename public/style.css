@@ -169,24 +169,7 @@ input, textarea, select, button {
   font-weight: 500;
 }
 .header-right { display: flex; align-items: center; gap: 12px; }
-.hdr-visits {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: .1px;
-}
-.hdr-btn {
-  background: var(--blue);
-  color: #fff;
-  border-radius: 20px;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .15s, transform .1s;
-  letter-spacing: -.1px;
-}
-.hdr-btn:active { background: var(--blue-hover); transform: scale(.97); }
+
 
 .theme-toggle {
   width: 34px;
@@ -862,7 +845,7 @@ input, textarea, select, button {
 /* ── FOOTER ───────────────────────────────────── */
 #footer {
   position: absolute;
-  bottom: 4px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
   left: 0;
   right: 0;
   text-align: center;

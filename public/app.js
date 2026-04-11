@@ -64,8 +64,6 @@ async function loadAll() {
   state.inventory = inventory;
   state.activity = activityData;
   state.visits = visitRes.total;
-  const vc = document.getElementById('visitCount');
-  if (vc) vc.textContent = visitRes.total.toLocaleString();
   const av = document.getElementById('appVersion');
   if (av) av.textContent = 'v' + versionRes.version;
 }
