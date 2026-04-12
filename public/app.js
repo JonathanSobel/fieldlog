@@ -372,14 +372,14 @@ function setLoggedByFilter(name) {
 function renderDashboard() {
   const { stats } = state;
 
-  // Unique logged_by names sorted alphabetically
+  // Unique soldier names sorted alphabetically
   const loggers = [...new Set(
-    state.allRequests.map(r => r.logged_by).filter(Boolean)
+    state.allRequests.map(r => r.soldier_name).filter(Boolean)
   )].sort((a, b) => a.localeCompare(b));
 
   const recent = (state.loggedByFilter === 'all'
     ? state.allRequests
-    : state.allRequests.filter(r => r.logged_by === state.loggedByFilter)
+    : state.allRequests.filter(r => r.soldier_name === state.loggedByFilter)
   ).slice(0, 6);
 
   const urgentBar = stats.urgent > 0 ? `
