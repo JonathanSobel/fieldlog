@@ -278,9 +278,8 @@ app.delete('/api/visits', (_req, res) => {
 
 // Record a login (open — called by client after successful auth)
 app.post('/api/logins', (req, res) => {
-  const { username } = req.body;
-  if (!username?.trim()) return res.status(400).json({ error: 'username required' });
-  const row = logins.insert({ username: username.trim() });
+  const username = req.body?.username?.trim() || 'unknown';
+  const row = logins.insert({ username });
   res.json(row);
 });
 

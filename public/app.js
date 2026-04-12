@@ -171,8 +171,8 @@ async function loadAll() {
     api('GET', '/api/stats'),
     api('GET', '/api/inventory'),
     api('GET', '/api/activity'),
-    api('POST', '/api/visits'),
-    api('GET', '/api/version'),
+    api('POST', '/api/visits').catch(() => ({ total: 0 })),
+    api('GET', '/api/version').catch(() => ({ version: '?' })),
   ]);
   state.allRequests = requests;
   state.stats = stats;
@@ -222,6 +222,8 @@ function getFiltered() {
   return state.allRequests.filter(r => {
     if (state.filter === 'urgent') {
       if (!r.urgent || !['New', 'In Progress'].includes(r.status)) return false;
+    } else if (state.filter === 'overdue') {
+      if (!isOverdue(r)) return false;
     } else if (state.filter !== 'all' && r.status !== state.filter) {
       return false;
     }
@@ -394,7 +396,7 @@ function renderDashboard() {
     <div class="overdue-banner">
       <span>⚠️</span>
       <span>${stats.overdue} overdue request${stats.overdue > 1 ? 's' : ''} — older than ${OVERDUE_DAYS} days</span>
-      <button class="btn btn-cancel ml-auto" onclick="goFiltered('New')" style="font-size:12px;padding:5px 10px;">View</button>
+      <button class="btn btn-cancel ml-auto" onclick="goFiltered('overdue')" style="font-size:12px;padding:5px 10px;">View</button>
     </div>` : '';
 
   document.getElementById('view-dashboard').innerHTML = `
@@ -449,6 +451,7 @@ function renderRequests() {
   const filterDefs = [
     { key: 'all',                              label: 'All' },
     { key: 'urgent',                           label: '⚡ Urgent' },
+    { key: 'overdue',                          label: '⚠ Overdue' },
     { key: 'New',                              label: '🔵 New' },
     { key: 'In Progress',                      label: '▶ Progress' },
     { key: 'In Stock – Waiting for Pickup',    label: '📦 Pickup' },
@@ -571,9 +574,7 @@ function renderInvItem(item) {
 
 // ─── HEADER ───────────────────────────────────────────────────────────────────
 
-function renderHeader() {
-  // username is shown in the dashboard greeting, nothing to update in the header
-}
+function renderHeader() {}
 
 // ─── RENDER CURRENT VIEW ──────────────────────────────────────────────────────
 
