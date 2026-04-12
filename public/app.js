@@ -5,14 +5,15 @@
 // ─── STATE ───────────────────────────────────────────────────────────────────
 
 const state = {
-  view:        'dashboard',
-  allRequests: [],
-  stats:       {},
-  inventory:   [],
-  activity:    [],
-  visits:      0,
-  filter:      'all',
-  search:      '',
+  view:           'dashboard',
+  allRequests:    [],
+  stats:          {},
+  inventory:      [],
+  activity:       [],
+  visits:         0,
+  filter:         'all',
+  search:         '',
+  loggedByFilter: 'all',
 };
 
 const OVERDUE_DAYS = 3;
@@ -363,9 +364,23 @@ function renderActivityFeed() {
 
 // ─── RENDER: DASHBOARD ────────────────────────────────────────────────────────
 
+function setLoggedByFilter(name) {
+  state.loggedByFilter = name;
+  renderDashboard();
+}
+
 function renderDashboard() {
   const { stats } = state;
-  const recent    = state.allRequests.slice(0, 6);
+
+  // Unique logged_by names sorted alphabetically
+  const loggers = [...new Set(
+    state.allRequests.map(r => r.logged_by).filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
+
+  const recent = (state.loggedByFilter === 'all'
+    ? state.allRequests
+    : state.allRequests.filter(r => r.logged_by === state.loggedByFilter)
+  ).slice(0, 6);
 
   const urgentBar = stats.urgent > 0 ? `
     <div class="overdue-banner" style="border-color:rgba(255,59,48,.2)">
@@ -410,6 +425,14 @@ function renderDashboard() {
       <span class="section-title">Recent Requests</span>
       <button class="btn btn-ghost" onclick="navigate('requests')" style="font-size:13px;">See all →</button>
     </div>
+    ${loggers.length > 1 ? `
+    <div class="filter-row" style="margin-bottom:8px;">
+      <button class="ftab ${state.loggedByFilter === 'all' ? 'active' : ''}" onclick="setLoggedByFilter('all')">All</button>
+      ${loggers.map(name => `
+        <button class="ftab ${state.loggedByFilter === name ? 'active' : ''}"
+                onclick="setLoggedByFilter('${esc(name)}')">${esc(name)}</button>
+      `).join('')}
+    </div>` : ''}
     ${recent.length === 0
       ? `<div class="empty"><div class="empty-icon">📋</div><p>No requests yet.<br>Tap <strong>+</strong> to add the first one.</p></div>`
       : recent.map(renderReqCard).join('')
