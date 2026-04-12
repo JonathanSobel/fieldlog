@@ -932,16 +932,15 @@ async function init() {
   });
 
   // Load data and render
-  try {
+  await loadAll();
+
+  // If token was wiped during loadAll (401 from server), re-login then reload
+  if (!getToken()) {
+    await initLogin();
+    renderHeader();
     await loadAll();
-  } catch (err) {
-    console.error('Failed to load data:', err);
-    document.getElementById('view-dashboard').innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">⚠️</div>
-        <p>Could not connect to server.<br>Please refresh the page.</p>
-      </div>`;
   }
+
   navigate('dashboard');
 }
 
