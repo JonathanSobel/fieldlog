@@ -68,10 +68,8 @@ function showLogin() {
   const nameGroup = nameInput?.closest('.form-group');
   if (nameInput && getUsername()) {
     nameInput.value = getUsername();
-    nameInput.removeAttribute('required');
     if (nameGroup) nameGroup.style.display = 'none';
   } else {
-    nameInput?.setAttribute('required', '');
     if (nameGroup) nameGroup.style.display = '';
   }
   document.getElementById('loginScreen').classList.remove('hidden');
