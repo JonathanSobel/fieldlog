@@ -939,11 +939,6 @@ async function init() {
     exportCSV();
   });
 
-  // Show loading state immediately so screen is never blank
-  document.getElementById('view-dashboard').classList.add('active');
-  document.getElementById('view-dashboard').innerHTML =
-    '<div class="empty"><div class="empty-icon">⏳</div><p>Loading…</p></div>';
-
   // Load data
   await loadAll();
 
