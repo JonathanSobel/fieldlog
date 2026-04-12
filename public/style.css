@@ -508,6 +508,7 @@ input, textarea, select, button {
 .btn-done   { background: var(--s-done-bg);   color: #1a7a32; }
 .btn-cancel { background: var(--s-overdue-bg); color: var(--s-overdue); }
 .btn-reopen { background: var(--s-cancel-bg); color: var(--text); }
+.btn-back   { background: none; color: var(--muted); border: 1.5px solid var(--border); }
 .btn-ghost  { background: none; color: var(--muted); padding: 9px 9px; font-size: 16px; }
 .btn-ghost:active { color: var(--text); }
 .btn-full   {

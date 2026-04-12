@@ -258,12 +258,15 @@ function nextActionButtons(req) {
     case 'In Progress':
       return `
         <button class="btn btn-ready"   onclick="setStatus(${id},'In Stock \u2013 Waiting for Pickup')">📦 Mark Ready</button>
+        <button class="btn btn-back"    onclick="setStatus(${id},'New')">← Back</button>
         <button class="btn btn-cancel"  onclick="setStatus(${id},'Cancelled')">✕</button>`;
     case 'In Stock – Waiting for Pickup':
       return `
-        <button class="btn btn-done"    onclick="setStatus(${id},'Completed (Picked Up)')">✅ Collected</button>`;
+        <button class="btn btn-done"    onclick="setStatus(${id},'Completed (Picked Up)')">✅ Collected</button>
+        <button class="btn btn-back"    onclick="setStatus(${id},'In Progress')">← Back</button>`;
     case 'Completed (Picked Up)':
-      return `<span style="color:var(--s-done);font-size:12px;font-weight:700;">✓ Completed</span>`;
+      return `
+        <button class="btn btn-back"    onclick="setStatus(${id},'In Stock \u2013 Waiting for Pickup')">← Back</button>`;
     case 'Cancelled':
       return `<button class="btn btn-reopen" onclick="setStatus(${id},'New')">↩ Reopen</button>`;
     default:
