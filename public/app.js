@@ -152,15 +152,23 @@ async function initLogin() {
 // ─── API ─────────────────────────────────────────────────────────────────────
 
 async function api(method, path, body) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
   const opts = {
     method,
+    signal: controller.signal,
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${getToken()}`,
     },
   };
   if (body !== undefined) opts.body = JSON.stringify(body);
-  const res = await fetch(path, opts);
+  let res;
+  try {
+    res = await fetch(path, opts);
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) {
     clearToken();
     window._needsDataRefresh = true;
@@ -931,7 +939,12 @@ async function init() {
     exportCSV();
   });
 
-  // Load data and render
+  // Show loading state immediately so screen is never blank
+  document.getElementById('view-dashboard').classList.add('active');
+  document.getElementById('view-dashboard').innerHTML =
+    '<div class="empty"><div class="empty-icon">⏳</div><p>Loading…</p></div>';
+
+  // Load data
   await loadAll();
 
   // If token was wiped during loadAll (401 from server), re-login then reload
