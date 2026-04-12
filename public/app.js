@@ -68,8 +68,10 @@ function showLogin() {
   const nameGroup = nameInput?.closest('.form-group');
   if (nameInput && getUsername()) {
     nameInput.value = getUsername();
+    nameInput.removeAttribute('required');
     if (nameGroup) nameGroup.style.display = 'none';
   } else {
+    nameInput?.setAttribute('required', '');
     if (nameGroup) nameGroup.style.display = '';
   }
   document.getElementById('loginScreen').classList.remove('hidden');
@@ -152,26 +154,17 @@ async function initLogin() {
 // ─── API ─────────────────────────────────────────────────────────────────────
 
 async function api(method, path, body) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 12000);
   const opts = {
     method,
-    signal: controller.signal,
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${getToken()}`,
     },
   };
   if (body !== undefined) opts.body = JSON.stringify(body);
-  let res;
-  try {
-    res = await fetch(path, opts);
-  } finally {
-    clearTimeout(timer);
-  }
+  const res = await fetch(path, opts);
   if (res.status === 401) {
     clearToken();
-    window._needsDataRefresh = true;
     showLogin();
     throw new Error('Session expired — please log in again');
   }
@@ -192,20 +185,20 @@ async function api(method, path, body) {
 
 async function loadAll() {
   const [requests, stats, inventory, activityData, visitRes, versionRes] = await Promise.all([
-    api('GET', '/api/requests').catch(() => []),
-    api('GET', '/api/stats').catch(() => ({})),
-    api('GET', '/api/inventory').catch(() => []),
-    api('GET', '/api/activity').catch(() => []),
-    api('POST', '/api/visits').catch(() => ({ total: 0 })),
-    api('GET', '/api/version').catch(() => ({ version: '?' })),
+    api('GET', '/api/requests'),
+    api('GET', '/api/stats'),
+    api('GET', '/api/inventory'),
+    api('GET', '/api/activity'),
+    api('POST', '/api/visits'),
+    api('GET', '/api/version'),
   ]);
-  state.allRequests = Array.isArray(requests) ? requests : [];
-  state.stats       = stats ?? {};
-  state.inventory   = Array.isArray(inventory) ? inventory : [];
-  state.activity    = Array.isArray(activityData) ? activityData : [];
-  state.visits      = visitRes?.total ?? 0;
+  state.allRequests = requests;
+  state.stats = stats;
+  state.inventory = inventory;
+  state.activity = activityData;
+  state.visits = visitRes.total;
   const av = document.getElementById('appVersion');
-  if (av) av.textContent = 'v' + (versionRes?.version ?? '?');
+  if (av) av.textContent = 'v' + versionRes.version;
 }
 
 async function refreshRequests() {
@@ -939,16 +932,17 @@ async function init() {
     exportCSV();
   });
 
-  // Load data
-  await loadAll();
-
-  // If token was wiped during loadAll (401 from server), re-login then reload
-  if (!getToken()) {
-    await initLogin();
-    renderHeader();
+  // Load data and render
+  try {
     await loadAll();
+  } catch (err) {
+    console.error('Failed to load data:', err);
+    document.getElementById('view-dashboard').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">⚠️</div>
+        <p>Could not connect to server.<br>Please refresh the page.</p>
+      </div>`;
   }
-
   navigate('dashboard');
 }
 
