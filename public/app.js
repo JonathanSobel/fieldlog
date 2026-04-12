@@ -163,6 +163,7 @@ async function api(method, path, body) {
   const res = await fetch(path, opts);
   if (res.status === 401) {
     clearToken();
+    window._needsDataRefresh = true;
     showLogin();
     throw new Error('Session expired — please log in again');
   }
@@ -183,20 +184,20 @@ async function api(method, path, body) {
 
 async function loadAll() {
   const [requests, stats, inventory, activityData, visitRes, versionRes] = await Promise.all([
-    api('GET', '/api/requests'),
-    api('GET', '/api/stats'),
-    api('GET', '/api/inventory'),
-    api('GET', '/api/activity'),
-    api('POST', '/api/visits'),
-    api('GET', '/api/version'),
+    api('GET', '/api/requests').catch(() => []),
+    api('GET', '/api/stats').catch(() => ({})),
+    api('GET', '/api/inventory').catch(() => []),
+    api('GET', '/api/activity').catch(() => []),
+    api('POST', '/api/visits').catch(() => ({ total: 0 })),
+    api('GET', '/api/version').catch(() => ({ version: '?' })),
   ]);
-  state.allRequests = requests;
-  state.stats = stats;
-  state.inventory = inventory;
-  state.activity = activityData;
-  state.visits = visitRes.total;
+  state.allRequests = Array.isArray(requests) ? requests : [];
+  state.stats       = stats ?? {};
+  state.inventory   = Array.isArray(inventory) ? inventory : [];
+  state.activity    = Array.isArray(activityData) ? activityData : [];
+  state.visits      = visitRes?.total ?? 0;
   const av = document.getElementById('appVersion');
-  if (av) av.textContent = 'v' + versionRes.version;
+  if (av) av.textContent = 'v' + (versionRes?.version ?? '?');
 }
 
 async function refreshRequests() {
