@@ -43,6 +43,9 @@ function clearToken() {
   localStorage.removeItem('fieldlog-last-active');
 }
 
+function getUsername() { return localStorage.getItem('fieldlog-username') || ''; }
+function setUsername(n) { localStorage.setItem('fieldlog-username', n); }
+
 function touchActivity() {
   if (!isLocal) localStorage.setItem('fieldlog-last-active', Date.now());
 }
@@ -54,13 +57,23 @@ function isSessionExpired() {
 }
 
 function showLogin() {
-  // Reset form state before showing
   const btn   = document.getElementById('loginBtn');
   const error = document.getElementById('loginError');
   const form  = document.getElementById('loginForm');
   if (form)  form.reset();
   if (btn)   { btn.textContent = 'Enter'; btn.disabled = false; }
   if (error) error.classList.add('hidden');
+  // Pre-fill name if already known; hide the field on re-login
+  const nameInput = document.getElementById('loginName');
+  const nameGroup = nameInput?.closest('.form-group');
+  if (nameInput && getUsername()) {
+    nameInput.value = getUsername();
+    nameInput.removeAttribute('required');
+    if (nameGroup) nameGroup.style.display = 'none';
+  } else {
+    nameInput?.setAttribute('required', '');
+    if (nameGroup) nameGroup.style.display = '';
+  }
   document.getElementById('loginScreen').classList.remove('hidden');
   document.body.classList.add('no-scroll');
 }
@@ -74,8 +87,8 @@ async function initLogin() {
   const error = document.getElementById('loginError');
   const btn   = document.getElementById('loginBtn');
 
-  // Already logged in — check session expiry
-  if (getToken()) {
+  // Already logged in — check session expiry (on localhost always show login for testing)
+  if (!isLocal && getToken()) {
     if (isSessionExpired()) {
       clearToken();
     } else {
@@ -91,8 +104,14 @@ async function initLogin() {
       e.preventDefault();
       // On localhost: skip real auth, any input works
       if (isLocal) {
+        const n = document.getElementById('loginName').value.trim();
+        if (n) {
+          setUsername(n);
+          fetch('/api/logins', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: n }) });
+        }
         setToken('dev-token');
         hideLogin();
+        renderHeader();
         return resolve(true);
       }
       const password = document.getElementById('loginPassword').value;
@@ -107,9 +126,15 @@ async function initLogin() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Incorrect password');
+        const n = document.getElementById('loginName').value.trim();
+        if (n) {
+          setUsername(n);
+          fetch('/api/logins', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: n }) });
+        }
         setToken(data.token);
         touchActivity();
         hideLogin();
+        renderHeader();
         if (window._needsDataRefresh) {
           window._needsDataRefresh = false;
           await refreshRequests();
@@ -192,13 +217,7 @@ async function refreshRequests() {
 function esc(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function isOverdue(req) {
-  if (!['New', 'In Progress'].includes(req.status)) return false;
-  const received = new Date(req.date_received + 'T00:00:00');
-  return (Date.now() - received.getTime()) / 86_400_000 > OVERDUE_DAYS;
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function formatDate(dateStr) {
@@ -396,8 +415,10 @@ function renderDashboard() {
       <button class="btn btn-cancel ml-auto" onclick="goFiltered('New')" style="font-size:12px;padding:5px 10px;">View</button>
     </div>` : '';
 
+  const username = getUsername();
   document.getElementById('view-dashboard').innerHTML = `
     <div class="page-title">Dashboard</div>
+    ${username ? `<div class="dashboard-greeting">👤 ${esc(username)}</div>` : ''}
 
     ${urgentBar}
     ${overdueBar}
@@ -568,6 +589,12 @@ function renderInvItem(item) {
     </div>`;
 }
 
+// ─── HEADER ───────────────────────────────────────────────────────────────────
+
+function renderHeader() {
+  // username is shown in the dashboard greeting, nothing to update in the header
+}
+
 // ─── RENDER CURRENT VIEW ──────────────────────────────────────────────────────
 
 function renderView() {
@@ -696,6 +723,10 @@ function openModal(req = null) {
   submitBtn.textContent = req ? 'Save Changes' : 'Save Request';
   submitBtn.disabled = false;
   document.getElementById('requestId').value = req?.id ?? '';
+
+  if (!req) {
+    document.getElementById('loggedBy').value = getUsername();
+  }
 
   if (req) {
     document.getElementById('soldierName').value  = req.soldier_name;
@@ -851,6 +882,9 @@ async function init() {
 
   // Login — waits until authenticated before continuing
   await initLogin();
+
+  // Show logged-in username in header
+  renderHeader();
 
   // Disclaimer (after login)
   initDisclaimer();

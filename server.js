@@ -2,7 +2,7 @@ const express = require('express');
 const path    = require('path');
 const crypto  = require('crypto');
 const { version } = require('./package.json');
-const { requests, inventory, activity, visits } = require('./db');
+const { requests, inventory, activity, visits, logins } = require('./db');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -34,10 +34,11 @@ function requireAuth(req, res, next) {
   res.status(401).json({ error: 'Unauthorized' });
 }
 
-// Protect all /api/* routes except /api/auth and GET /api/visits
+// Protect all /api/* routes except /api/auth, GET /api/visits, and POST /api/logins
 app.use('/api', (req, res, next) => {
   if (req.path === '/auth') return next();
   if (req.path === '/visits') return next();
+  if (req.path === '/logins' && req.method === 'POST') return next();
   requireAuth(req, res, next);
 });
 
@@ -271,6 +272,39 @@ app.get('/api/visits', (_req, res) => {
 app.delete('/api/visits', (_req, res) => {
   visits.reset();
   res.json({ total: 0 });
+});
+
+// ─── LOGINS ───────────────────────────────────────────────────────────────────
+
+// Record a login (open — called by client after successful auth)
+app.post('/api/logins', (req, res) => {
+  const { username } = req.body;
+  if (!username?.trim()) return res.status(400).json({ error: 'username required' });
+  const row = logins.insert({ username: username.trim() });
+  res.json(row);
+});
+
+// Read logins — localhost only
+app.get('/api/logins', (req, res) => {
+  const host = req.hostname;
+  if (host !== 'localhost' && host !== '127.0.0.1') return res.status(403).json({ error: 'Forbidden' });
+  const rows = logins.findAll({ orderBy: (a, b) => new Date(b.created_at) - new Date(a.created_at) });
+  res.json(rows);
+});
+
+// Clear logins — localhost only
+app.delete('/api/logins', (req, res) => {
+  const host = req.hostname;
+  if (host !== 'localhost' && host !== '127.0.0.1') return res.status(403).json({ error: 'Forbidden' });
+  logins.removeWhere(() => true);
+  res.json({ success: true });
+});
+
+// Admin page — localhost only
+app.get('/admin', (req, res) => {
+  const host = req.hostname;
+  if (host !== 'localhost' && host !== '127.0.0.1') return res.status(403).send('Forbidden');
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // ─── START ────────────────────────────────────────────────────────────────────

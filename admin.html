@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SupplyLog · Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      padding: 40px 24px;
+    }
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 4px; letter-spacing: -.5px; }
+    .subtitle { font-size: 13px; color: #6e6e73; margin-bottom: 32px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: #6e6e73;
+      padding: 12px 20px;
+      border-bottom: 1px solid #e5e5ea;
+      background: #fbfbfd;
+    }
+    td {
+      padding: 14px 20px;
+      font-size: 14px;
+      border-bottom: 1px solid #f2f2f7;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9f9fb; }
+    .name { font-weight: 600; }
+    .time { color: #6e6e73; font-size: 13px; }
+    .empty { text-align: center; padding: 48px; color: #6e6e73; font-size: 15px; }
+    .count { font-size: 13px; color: #6e6e73; margin-bottom: 12px; }
+    .btn-clear {
+      margin-top: 20px;
+      padding: 8px 16px;
+      background: #ff3b30;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-clear:hover { background: #d63029; }
+    .stat-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      min-width: 120px;
+      text-align: center;
+    }
+    .stat-num { font-size: 32px; font-weight: 800; letter-spacing: -.5px; color: #0071e3; }
+    .stat-lbl { font-size: 12px; font-weight: 600; color: #6e6e73; text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; }
+  </style>
+</head>
+<body>
+  <h1>Admin</h1>
+  <div class="subtitle">SupplyLog · Localhost only</div>
+  <div style="display:flex;gap:16px;margin-bottom:24px;">
+    <div class="stat-box"><div class="stat-num" id="statLogins">—</div><div class="stat-lbl">Total Logins</div></div>
+    <div class="stat-box"><div class="stat-num" id="statEntries">—</div><div class="stat-lbl">Total Entries</div></div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Date &amp; Time</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <button class="btn-clear" onclick="clearLogins()">Clear all logins</button>
+
+  <script>
+    function fmt(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
+           + ' · ' + d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+    }
+
+    async function load() {
+      const [loginsRes, statsRes] = await Promise.all([fetch('/api/logins'), fetch('/api/stats')]);
+      const rows  = await loginsRes.json();
+      const stats = await statsRes.json();
+      document.getElementById('statLogins').textContent  = rows.length;
+      document.getElementById('statEntries').textContent = stats.total ?? '—';
+      const tbody = document.getElementById('tbody');
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty">No logins recorded yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map((r, i) => `
+        <tr>
+          <td class="time">${rows.length - i}</td>
+          <td class="name">${r.username}</td>
+          <td class="time">${fmt(r.created_at)}</td>
+        </tr>`).join('');
+    }
+
+    async function clearLogins() {
+      if (!confirm('Clear all login records?')) return;
+      await fetch('/api/logins', { method: 'DELETE' });
+      load();
+    }
+
+    load();
+  </script>
+</body>
+</html>

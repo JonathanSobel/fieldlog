@@ -120,5 +120,6 @@ const requests  = new Table('requests');
 const inventory = new Table('inventory');
 const activity  = new Table('activity');
 const visits    = new Counter('visits');
+const logins    = new Table('logins');
 
-module.exports = { requests, inventory, activity, visits };
+module.exports = { requests, inventory, activity, visits, logins };
