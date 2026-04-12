@@ -18,6 +18,12 @@ const state = {
 
 const OVERDUE_DAYS = 3;
 
+function isOverdue(row) {
+  if (!['New', 'In Progress'].includes(row.status)) return false;
+  const received = new Date(row.date_received + 'T00:00:00');
+  return (Date.now() - received.getTime()) / 86_400_000 > OVERDUE_DAYS;
+}
+
 const CATEGORY_ICONS = {
   Hygiene: '🧴', Clothing: '👕', Sweets: '🍫',
   Cigarettes: '🚬', Other: '📦',
@@ -43,9 +49,6 @@ function clearToken() {
   localStorage.removeItem('fieldlog-last-active');
 }
 
-function getUsername() { return localStorage.getItem('fieldlog-username') || ''; }
-function setUsername(n) { localStorage.setItem('fieldlog-username', n); }
-
 function touchActivity() {
   if (!isLocal) localStorage.setItem('fieldlog-last-active', Date.now());
 }
@@ -63,17 +66,6 @@ function showLogin() {
   if (form)  form.reset();
   if (btn)   { btn.textContent = 'Enter'; btn.disabled = false; }
   if (error) error.classList.add('hidden');
-  // Pre-fill name if already known; hide the field on re-login
-  const nameInput = document.getElementById('loginName');
-  const nameGroup = nameInput?.closest('.form-group');
-  if (nameInput && getUsername()) {
-    nameInput.value = getUsername();
-    nameInput.removeAttribute('required');
-    if (nameGroup) nameGroup.style.display = 'none';
-  } else {
-    nameInput?.setAttribute('required', '');
-    if (nameGroup) nameGroup.style.display = '';
-  }
   document.getElementById('loginScreen').classList.remove('hidden');
   document.body.classList.add('no-scroll');
 }
@@ -104,11 +96,6 @@ async function initLogin() {
       e.preventDefault();
       // On localhost: skip real auth, any input works
       if (isLocal) {
-        const n = document.getElementById('loginName').value.trim();
-        if (n) {
-          setUsername(n);
-          fetch('/api/logins', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: n }) });
-        }
         setToken('dev-token');
         hideLogin();
         renderHeader();
@@ -126,11 +113,6 @@ async function initLogin() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Incorrect password');
-        const n = document.getElementById('loginName').value.trim();
-        if (n) {
-          setUsername(n);
-          fetch('/api/logins', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username: n }) });
-        }
         setToken(data.token);
         touchActivity();
         hideLogin();
@@ -415,10 +397,8 @@ function renderDashboard() {
       <button class="btn btn-cancel ml-auto" onclick="goFiltered('New')" style="font-size:12px;padding:5px 10px;">View</button>
     </div>` : '';
 
-  const username = getUsername();
   document.getElementById('view-dashboard').innerHTML = `
     <div class="page-title">Dashboard</div>
-    ${username ? `<div class="dashboard-greeting">👤 ${esc(username)}</div>` : ''}
 
     ${urgentBar}
     ${overdueBar}
@@ -725,7 +705,7 @@ function openModal(req = null) {
   document.getElementById('requestId').value = req?.id ?? '';
 
   if (!req) {
-    document.getElementById('loggedBy').value = getUsername();
+    document.getElementById('loggedBy').value = '';
   }
 
   if (req) {
@@ -947,6 +927,7 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
 
 // Check session expiry every minute
 setInterval(() => {
